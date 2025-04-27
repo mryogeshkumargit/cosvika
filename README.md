@@ -273,6 +273,16 @@ Ensure code is well-documented and follows the project’s style.
 
 ---
 
+**💖 Support Our Work**
+
+We are passionate about building innovative tools like Cosmo AI to empower users and advance AI accessibility. Your support fuels our motivation to create impactful projects that benefit the community. If you find Cosmo AI valuable, consider contributing financially to help us continue this journey.
+
+Support us via UPI: mryogeshkumar@icici
+
+Every contribution, big or small, makes a difference and inspires us to keep innovating. Thank you for being part of our mission!
+
+---
+
 ## 📜 License
 
 [MIT License](LICENSE) (or specify your chosen license).
