@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmo AI</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@4.0.18/lib/marked.min.js"></script>
+</head>
+<body>
+  <div class="title-frame animated-title">
+    <img src="/static/title.png" alt="Cosmo AI Icon" class="icon" onerror="this.src='https://via.placeholder.com/40/6a0dad/FFFFFF?text=AI';">
+    <span>Cosmo AI</span>
+  </div>
+
+  <div class="container" id="appContainer">
+    <!-- Button to toggle the combined chat/settings frame -->
+    <button id="chatFrameToggleBtn" class="chat-frame-toggle-btn" title="Toggle Panel">☰</button>
+
+    <!-- Combined Chat & Settings Frame -->
+    <div class="chat-settings-frame" id="chatSettingsFrame">
+        <div class="panel-content" id="panelContent">
+            <h2>Chats</h2>
+            <div class="chat-list" id="chatList">
+                <div class="chat-item chat-item-static">
+                <div class="chat-item-content">
+                    <img src="/static/chat-icon.png" alt="C" onerror="this.src='https://via.placeholder.com/40/888888/FFFFFF?text=C';">
+                    <span>Create New...</span>
+                </div>
+                </div>
+            </div>
+            <div class="chat-actions">
+                <button id="newChatBtn">+ New Chat</button>
+                <button id="deleteChatBtn">- Delete Chat</button>
+            </div>
+        </div>
+
+        <!-- Status Indicators Area -->
+        <div class="status-indicators" id="statusIndicators">
+            <div id="comfyuiIndicator" class="status-indicator hidden" title="ComfyUI Status">
+                <span class="icon">☁️</span>
+            </div>
+             <div id="voiceIndicator" class="status-indicator hidden" title="Voice Service Status">
+                <span class="icon">🎤</span>
+            </div>
+             <div id="saveIndicator" class="status-indicator hidden" title="Saving Chat...">
+                <span class="icon">💾</span>
+            </div>
+        </div>
+
+        <div class="settings-section" id="settingsSection">
+            <button id="settingsBtn">Settings</button>
+        </div>
+
+        <!-- Settings Panel (Initially Hidden, will be shown within this frame later) -->
+       <div class="settings" id="settingsPanel" style="display: none;">
+          <!-- Settings content -->
+          <button id="settingsCloseBtn" class="close-btn">X</button>
+          <div class="tabs">
+            <div class="tab active" data-tabId="general">General</div>
+            <div class="tab" data-tabId="comfyUI">ComfyUI</div>
+            <div class="tab" data-tabId="voice">Voice</div>
+          </div>
+          <div class="tab-contents">
+            <!-- General Settings Tab -->
+            <div id="generalContent" class="tab-content active">
+              <div style="margin-bottom: 10px;">
+                <span>ComfyUI Status: </span><span id="comfyUIStatus">Checking...</span>
+                <button id="comfyUIConnectBtn">Reconnect</button>
+              </div>
+              <hr style="margin: 15px 0;">
+              <label for="backendSelect">Text Backend:</label>
+              <select id="backendSelect">
+                <option value="ollama">Ollama (Local)</option>
+                <option value="kobold">Kobold AI (Local)</option>
+                <!-- --- START OF NEW OPTIONS --- -->
+                <option value="groq">Groq</option>
+                <option value="openai">OpenAI (ChatGPT)</option>
+                <option value="google">Google Gemini</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+                <option value="xai">xAI (Grok)</option>
+                <option value="custom_external">Custom External API</option>
+                <!-- --- END OF NEW OPTIONS --- -->
+              </select>
+
+              <!-- --- Model Selection Area --- -->
+              <div class="form-group model-input-group" data-backend="ollama">
+                  <label for="modelSelect">Ollama Model:</label>
+                  <select id="modelSelect">
+                    <option value="">Select Model</option>
+                  </select>
+              </div>
+              <!-- Dropdown for providers where models can be fetched -->
+              <div class="form-group model-input-group" data-backend="external-provider-select" style="display: none;">
+                  <label for="externalModelSelect">Model:</label>
+                  <select id="externalModelSelect">
+                      <option value="">Select Model</option>
+                      <!-- Models populated dynamically -->
+                  </select>
+                  <span id="externalModelStatus" class="model-status-indicator"></span>
+              </div>
+              <!-- Text input for providers where models cannot be fetched or for custom -->
+              <div class="form-group model-input-group" data-backend="external-provider-input" style="display: none;">
+                  <label for="externalModelInput">Model Name:</label>
+                  <input type="text" id="externalModelInput" placeholder="e.g., claude-3.5-sonnet, model-id" title="Enter the specific model identifier for this provider">
+              </div>
+              <!-- --- End Model Selection Area --- -->
+
+
+              <hr style="margin: 15px 0;">
+              <p style="font-weight:bold; color:#2c6e49;">API Endpoints & Keys:</p>
+              <!-- Local Endpoints -->
+              <div class="form-group api-input-group" data-backend="ollama">
+                <label for="ollamaApiInput">Ollama Endpoint:</label>
+                <input type="text" id="ollamaApiInput" value="http://localhost:11435" title="URL for your local Ollama server">
+                <button class="save-api-btn" data-api="ollama">Save</button>
+              </div>
+              <div class="form-group api-input-group" data-backend="kobold">
+                <label for="koboldApiInput">Kobold Endpoint:</label>
+                <input type="text" id="koboldApiInput" value="http://localhost:5001/api/v1/generate" title="URL for your local Kobold AI API endpoint">
+                <button class="save-api-btn" data-api="kobold">Save</button>
+              </div>
+              <div class="form-group api-input-group" data-backend="comfyui">
+                <label for="comfyUIApiInput">ComfyUI Endpoint:</label>
+                <input type="text" id="comfyUIApiInput" value="http://127.0.0.1:8188" title="URL for your local ComfyUI server">
+                <button class="save-api-btn" data-api="comfyui">Save</button>
+              </div>
+
+              <!-- Provider API Keys -->
+              <div class="form-group api-input-group" data-backend="groq" style="display: none;">
+                <label for="groqApiKeyInput">Groq API Key:</label>
+                <input type="password" id="groqApiKeyInput" placeholder="Required Groq API Key (gsk_...)" title="Enter your Groq API key">
+                <button class="save-api-btn" data-api="groqApiKey">Save</button>
+              </div>
+              <div class="form-group api-input-group" data-backend="openai" style="display: none;">
+                <label for="openaiApiKeyInput">OpenAI API Key:</label>
+                <input type="password" id="openaiApiKeyInput" placeholder="Required OpenAI API Key (sk_...)" title="Enter your OpenAI API key">
+                <button class="save-api-btn" data-api="openaiApiKey">Save</button>
+              </div>
+               <div class="form-group api-input-group" data-backend="google" style="display: none;">
+                <label for="googleApiKeyInput">Google API Key:</label>
+                <input type="password" id="googleApiKeyInput" placeholder="Required Google AI Studio Key" title="Enter your Google AI API key">
+                <button class="save-api-btn" data-api="googleApiKey">Save</button>
+              </div>
+               <div class="form-group api-input-group" data-backend="anthropic" style="display: none;">
+                <label for="anthropicApiKeyInput">Anthropic API Key:</label>
+                <input type="password" id="anthropicApiKeyInput" placeholder="Required Anthropic API Key" title="Enter your Anthropic API key">
+                <button class="save-api-btn" data-api="anthropicApiKey">Save</button>
+              </div>
+               <div class="form-group api-input-group" data-backend="xai" style="display: none;">
+                <label for="xaiApiKeyInput">xAI API Key:</label>
+                <input type="password" id="xaiApiKeyInput" placeholder="Required xAI API Key (if any)" title="Enter your xAI API key (if applicable)">
+                <button class="save-api-btn" data-api="xaiApiKey">Save</button>
+              </div>
+
+
+              <!-- Custom External API Settings -->
+              <div class="form-group api-input-group" data-backend="custom_external" style="display: none;">
+                <label for="customModelNameInput">Custom Model:</label> <!-- Renamed ID/Label -->
+                <input type="text" id="customModelNameInput" placeholder="e.g., my-custom-llm-v1" title="Enter the model identifier for your custom API">
+                <button class="save-api-btn" data-api="customModelName">Save</button> <!-- Renamed data-api -->
+              </div>
+              <div class="form-group api-input-group" data-backend="custom_external" style="display: none;">
+                <label for="customApiEndpointInput">Custom Endpoint:</label> <!-- Renamed ID/Label -->
+                <input type="text" id="customApiEndpointInput" placeholder="https://my.custom.api/v1/generate" title="Enter the full URL for your custom API endpoint">
+                <button class="save-api-btn" data-api="customApiEndpoint">Save</button> <!-- Renamed data-api -->
+              </div>
+              <div class="form-group api-input-group" data-backend="custom_external" style="display: none;">
+                 <label for="customApiKeyInput">Custom API Key:</label> <!-- Renamed ID/Label -->
+                <input type="password" id="customApiKeyInput" placeholder="Optional API Key" title="Enter the API key for your custom API (if required)">
+                <button class="save-api-btn" data-api="customApiKey">Save</button> <!-- Renamed data-api -->
+              </div>
+              <hr style="margin: 15px 0;">
+              <button id="toggleThemeBtn">Toggle Theme</button>
+              <button id="clearHistoryBtn">Clear All Chat History</button>
+            </div>
+
+            <!-- ComfyUI Settings Tab -->
+            <div id="comfyUIContent" class="tab-content">
+               <p style="font-size:0.9em; color:#555; margin-bottom:15px;">Configure image generation settings.</p>
+              <div class="form-group">
+                <label>Workflow:
+                   <input type="file" id="workflowUpload" accept=".json" title="Upload ComfyUI workflow JSON. Default used if none.">
+                   <span id="workflowFileName" style="font-size: 0.8em; color: #666; margin-left: 5px;">Using default workflow</span>
+                </label>
+              </div>
+              <hr style="margin: 15px 0;">
+              <div class="form-group">
+                  <label for="checkpointInput">Checkpoint:</label>
+                  <select id="checkpointInput" title="Select the primary model checkpoint.">
+                      <option value="">Loading Checkpoints...</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="widthInput">Width:</label>
+                  <input type="number" id="widthInput" value="512" min="64" step="8" title="Image width in pixels.">
+              </div>
+              <div class="form-group">
+                  <label for="heightInput">Height:</label>
+                  <input type="number" id="heightInput" value="512" min="64" step="8" title="Image height in pixels.">
+              </div>
+               <div class="form-group">
+                  <label for="seedInput">Seed:</label>
+                  <input type="number" id="seedInput" value="0" min="0" title="Generation seed. 0 for random.">
+              </div>
+              <div class="form-group">
+                  <label for="stepsInput">Steps:</label>
+                  <input type="number" id="stepsInput" value="25" min="1" max="100" title="Number of sampling steps.">
+              </div>
+              <div class="form-group">
+                  <label for="cfgInput">CFG Scale:</label>
+                  <input type="number" id="cfgInput" value="7.0" min="1.0" max="20.0" step="0.5" title="Prompt influence scale.">
+              </div>
+              <div class="form-group">
+                  <label for="samplerInput">Sampler:</label>
+                  <select id="samplerInput" title="Sampling algorithm.">
+                      <option value="euler">euler</option>
+                      <option value="euler_ancestral">euler_ancestral</option>
+                      <option value="dpmpp_2m">dpmpp_2m</option>
+                      <option value="dpmpp_sde">dpmpp_sde</option>
+                      <option value="dpmpp_2m_sde">dpmpp_2m_sde</option>
+                      <option value="dpmpp_3m_sde">dpmpp_3m_sde</option>
+                      <option value="ddim">ddim</option>
+                      <option value="uni_pc">uni_pc</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="schedulerInput">Scheduler:</label>
+                  <select id="schedulerInput" title="Sampler scheduler.">
+                      <option value="normal">normal</option>
+                      <option value="karras">karras</option>
+                      <option value="exponential">exponential</option>
+                      <option value="sgm_uniform">sgm_uniform</option>
+                      <option value="simple">simple</option>
+                      <option value="ddim_uniform">ddim_uniform</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="denoiseInput">Denoise:</label>
+                  <input type="number" id="denoiseInput" value="1.0" min="0.0" max="1.0" step="0.05" title="Denoising strength (img2img/KSampler).">
+              </div>
+              <br>
+              <button id="saveComfyUISettingsBtn">Save ComfyUI Settings</button>
+              <button id="resetComfyUISettingsBtn" style="background: #777; margin-left: 10px;">Reset to Defaults</button>
+            </div>
+
+            <!-- Voice Settings Tab -->
+            <div id="voiceContent" class="tab-content">
+              <p style="font-size:0.9em; color:#555; margin-bottom:15px;">Configure real-time voice interaction.</p>
+              <div class="form-group">
+                  <label for="voiceEnableToggle">Enable Voice Mode:</label>
+                  <input type="checkbox" id="voiceEnableToggle" title="Enable microphone input and voice output.">
+              </div>
+              <hr style="margin: 15px 0;">
+               <p><strong>Input (STT - Whisper)</strong></p>
+               <div class="form-group">
+                  <label for="micSelect">Microphone:</label>
+                  <select id="micSelect" title="Select your input microphone." disabled>
+                      <option value="default">Default</option>
+                      <!-- Options populated by script -->
+                  </select>
+               </div>
+               <div class="form-group">
+                  <label for="sttLanguageSelect">Language:</label>
+                  <select id="sttLanguageSelect" title="Select the language you will be speaking." disabled>
+                      <option value="en">English</option>
+                      <option value="es">Spanish</option>
+                      <option value="fr">French</option>
+                      <option value="de">German</option>
+                      <option value="ja">Japanese</option>
+                      <option value="zh">Chinese</option>
+                      <option value="auto">Auto-Detect</option>
+                      <!-- Add more languages as needed -->
+                  </select>
+               </div>
+              <hr style="margin: 15px 0;">
+               <p><strong>Output (TTS - Coqui)</strong></p>
+
+               <!-- NEW: TTS Model Selection -->
+               <div class="form-group">
+                   <label for="ttsModelSelect">TTS Model:</label>
+                   <select id="ttsModelSelect" title="Select the primary TTS model. Loading occurs on selection." disabled>
+                       <option value="">Loading Models...</option>
+                       <!-- Options populated by script -->
+                   </select>
+                   <span id="ttsModelStatus" style="font-size:0.8em; margin-left: 5px; color: #666;"></span>
+               </div>
+
+              <div class="form-group">
+                  <label for="ttsEnableToggle">Enable Voice Output:</label>
+                  <input type="checkbox" id="ttsEnableToggle" title="Speak bot responses aloud." disabled>
+              </div>
+
+               <!-- This is now for SPEAKERS within the loaded model -->
+               <div class="form-group">
+                   <label for="voiceSelect">Speaker:</label> <!-- Changed label -->
+                   <select id="voiceSelect" title="Select the speaker (if available)." disabled>
+                       <option value="">Default</option>
+                       <!-- Options populated by script based on loaded model -->
+                   </select>
+                   <!-- NEW: Sample Voice Button -->
+                   <button id="sampleVoiceBtn" class="small-btn" title="Play sample for selected speaker" disabled>▶️ Sample</button>
+               </div>
+
+                <div class="form-group">
+                   <label for="voiceSpeedSlider">Speed:</label>
+                   <input type="range" id="voiceSpeedSlider" min="0.5" max="2.0" step="0.1" value="1.0" title="Adjust voice speed." disabled>
+                   <span id="voiceSpeedValue">1.0x</span>
+               </div>
+                <div class="form-group">
+                   <label for="voicePitchSlider">Pitch:</label>
+                   <input type="range" id="voicePitchSlider" min="0.5" max="1.5" step="0.1" value="1.0" title="Adjust voice pitch." disabled>
+                    <span id="voicePitchValue">1.0x</span>
+               </div>
+                <hr style="margin: 15px 0;">
+                <p><strong>Mode & Playback</strong></p>
+                <div class="form-group">
+                   <label for="interactionModeSelect">Mode:</label>
+                   <select id="interactionModeSelect" title="Choose interaction mode." disabled>
+                       <option value="hybrid">Hybrid (Text & Voice)</option>
+                       <option value="voice_only">Voice Only</option>
+                       <option value="text_only">Text Only</option>
+                   </select>
+               </div>
+               <div class="form-group">
+                    <label>Playback:</label>
+                   <button id="replayBtn" title="Replay last voice response" disabled>Replay</button>
+                   <button id="stopAudioBtn" title="Stop current voice playback" disabled>Stop Audio</button>
+               </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+      <div class="chat-area" id="chatArea">
+        <!-- Messages added here by script -->
+      </div>
+      <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Type message or 'send your photo your_prompt_here'...">
+        <button class="icon-btn send-btn" title="Send Message">➤</button>
+        <button class="icon-btn mic-btn" title="Voice Input (Unavailable)" disabled>🎤</button>
+      </div>
+      <div class="voice-status-indicator" id="voiceStatusIndicator" style="display: none;">
+          <span>Listening...</span>
+          <div class="waveform"></div>
+      </div>
+    </div>
+
+    <div class="profile">
+      <img src="/static/profile.png" alt="Profile Icon" id="profileImage" onerror="this.src='https://via.placeholder.com/200';">
+      <div class="image-section" id="imageSection" style="display: none;">
+        <img id="generatedImage" src="" alt="Generated Image">
+      </div>
+      <div class="image-history-container">
+        <p>Image History (Current Chat):</p>
+        <div class="image-history" id="imageHistory">
+        </div>
+      </div>
+      <button id="generateMorePhotosBtn" title="Generate variations based on the last 'send your photo' prompt">Generate More Photos</button>
+    </div>
+
+    <button id="profileToggleBtn" class="profile-toggle-btn" title="Toggle Profile Panel"></button>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="/static/app.js" type="module" defer></script>
+</body>
+</html>
